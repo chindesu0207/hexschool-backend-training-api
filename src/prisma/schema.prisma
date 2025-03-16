@@ -17,11 +17,14 @@ model User {
   id         String   @id @default(uuid()) @db.Uuid
   name       String   @db.VarChar(50)
   email      String   @unique @db.VarChar(320)
-  role       String   @db.VarChar(20)
+  role       String   @default("USER") @db.VarChar(20)
   password   String   @db.VarChar(72)
   created_at DateTime @default(now()) @db.Timestamp(6)
   updated_at DateTime @updatedAt @db.Timestamp(6)
   Coach      Coach?
+
+  CreditPurchases CreditPurchase[]
+  CourseBookings  CourseBooking[]
 
   @@map("user")
 }
@@ -35,7 +38,8 @@ model Coach {
   created_at        DateTime @default(now()) @db.Timestamp(6)
   updated_at        DateTime @updatedAt @db.Timestamp(6)
 
-  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  user    User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  courses Course[]
 
   @@map("coach")
 }
@@ -44,16 +48,71 @@ model Skill {
   id         String   @id @default(uuid()) @db.Uuid
   name       String   @unique @db.VarChar(50)
   created_at DateTime @default(now()) @db.Timestamp(6)
+  courses    Course[]
 
   @@map("skill")
 }
 
 model CreditPackage {
-  id            String   @id @default(uuid()) @db.Uuid
-  name          String   @unique @db.VarChar(50)
-  credit_amount Int
-  price         Decimal  @db.Decimal(10, 2)
-  created_at    DateTime @default(now()) @db.Timestamp(6)
+  id             String           @id @default(uuid()) @db.Uuid
+  name           String           @unique @db.VarChar(50)
+  credit_amount  Int
+  price          Decimal          @db.Decimal(10, 2)
+  created_at     DateTime         @default(now()) @db.Timestamp(6)
+  CreditPurchase CreditPurchase[]
 
   @@map("credit_package")
+}
+
+model Course {
+  id               String   @id @default(uuid()) @db.Uuid
+  user_id          String   @db.Uuid
+  skill_id         String   @db.Uuid
+  name             String   @db.VarChar(100)
+  description      String   @db.Text
+  start_at         DateTime @db.Timestamp(6)
+  end_at           DateTime @db.Timestamp(6)
+  max_participants Int
+  meeting_url      String?  @db.VarChar(2048)
+  created_at       DateTime @default(now()) @db.Timestamp(6)
+  updated_at       DateTime @updatedAt @db.Timestamp(6)
+
+  coach          Coach           @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+  skill          Skill           @relation(fields: [skill_id], references: [id], onDelete: Cascade)
+  CourseBookings CourseBooking[]
+
+  @@map("course")
+}
+
+model CreditPurchase {
+  id                String   @id @default(uuid()) @db.Uuid
+  user_id           String   @db.Uuid
+  credit_package_id String   @db.Uuid
+  purchased_credits Int
+  price_paid        Decimal  @db.Decimal(10, 2)
+  created_at        DateTime @default(now()) @db.Timestamp(6)
+  purchase_at       DateTime @default(now()) @db.Timestamp(6)
+
+  user          User          @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  creditPackage CreditPackage @relation(fields: [credit_package_id], references: [id], onDelete: Cascade)
+
+  @@map("credit_purchase")
+}
+
+model CourseBooking {
+  id                  String    @id @default(uuid()) @db.Uuid
+  user_id             String    @db.Uuid
+  course_id           String    @db.Uuid
+  booking_at          DateTime  @default(now()) @db.Timestamp(6)
+  status              String    @db.VarChar(20)
+  join_at             DateTime?
+  leave_at            DateTime?
+  cancelled_at        DateTime?
+  cancellation_reason String?   @db.VarChar(255)
+  created_at          DateTime  @default(now()) @db.Timestamp(6)
+
+  user   User   @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  course Course @relation(fields: [course_id], references: [id], onDelete: Cascade)
+
+  @@map("course_booking")
 }
