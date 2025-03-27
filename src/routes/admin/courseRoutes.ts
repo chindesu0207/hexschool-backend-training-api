@@ -5,7 +5,7 @@ import {
   createCourseSchema,
   updateCourseSchema,
 } from "../../schema/courseSchema";
-import { createCourse } from "../../controllers/courseController";
+import { createCourse, updateCourse } from "../../controllers/courseController";
 
 const router = Router();
 
@@ -20,7 +20,7 @@ router.put(
   isAuth,
   validateUUID,
   validateData(updateCourseSchema, "body"),
-  createCourse,
+  updateCourse,
 );
 
 export default router;

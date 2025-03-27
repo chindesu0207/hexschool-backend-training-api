@@ -34,7 +34,12 @@ export const create = async (
 
   return await prisma.user.create({
     data: { name, email, password: hashedPassword, role },
-    omit: { role: true, created_at: true, updated_at: true },
+    omit: {
+      password: true,
+      role: true,
+      created_at: true,
+      updated_at: true,
+    },
   });
 };
 
@@ -60,7 +65,6 @@ export const login = async (email: string, password: string) => {
   if (!isPasswordValid) {
     throw new AppError("使用者不存在或密碼輸入錯誤", 400);
   }
-  console.log(JWT_SECRET, JWT_EXPIRES_DAY);
 
   const token = jwt.sign(
     {
